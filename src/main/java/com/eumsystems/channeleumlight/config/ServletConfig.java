@@ -96,6 +96,7 @@ public class ServletConfig implements WebMvcConfigurer {
 	}
 	@Override
 	public void configureMessageConverters(List<HttpMessageConverter<?>> converters) {
+		
 		// TODO Auto-generated method stub
 		
 	}

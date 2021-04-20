@@ -32,6 +32,14 @@
 			<artifactId>spring-webmvc</artifactId>
 			<version>${org.springframework-version}</version>
 		</dependency>
+		
+		<dependency>
+
+		    <groupId>com.fasterxml.jackson.core</groupId>
+		    <artifactId>jackson-databind</artifactId>
+		    <version>2.12.3</version>
+		
+		</dependency>
 				
 		<!-- AspectJ -->
 		<dependency>
@@ -80,7 +88,7 @@
 					<artifactId>jmxri</artifactId>
 				</exclusion>
 			</exclusions>
-			<scope>runtime</scope>
+			<!-- <scope>runtime</scope>  -->
 		</dependency>
 
 		<!-- @Inject -->
@@ -122,6 +130,12 @@
     		<artifactId>lombok</artifactId>
     		<version>1.18.12</version>
     		<scope>provided</scope>
+		</dependency>
+		<!-- HttpClient -->
+		<dependency>
+    		<groupId>org.apache.httpcomponents</groupId>
+    		<artifactId>httpclient</artifactId>
+    		<version>4.5.12</version>
 		</dependency>
 	</dependencies>
     <build>

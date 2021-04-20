@@ -1,0 +1,17 @@
+<?xml version="1.0"?>
+   <project name="Hello World Project" default="info">
+   <target name="info">
+      <echo>Hello World - Welcome to Apache Ant!</echo>
+   </target>
+   
+   
+   <target name="makeDirectory">
+      <echo>Make dir......</echo>
+      <mkdir dir="e:/testDirByAnt"/>
+      <javac srcdir="src/main/java"
+	       destdir="e:/testDirByAnt"
+	       classpath="xyz.jar"
+	       debug="on"
+	       source="1.4"/>
+   </target>
+</project>
