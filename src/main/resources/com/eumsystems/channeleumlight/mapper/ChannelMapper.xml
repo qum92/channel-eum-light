@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eumsystems.channeleumlight.mapper.ChannelMapper">
+	<select id="getIsucoInfo" parameterType="com.eumsystems.channeleumlight.model.ChannelVo" resultType="com.eumsystems.channeleumlight.model.ChannelVo">
+	  SELECT 
+	   A.CHNL_ORGT_ID
+	  ,A.DST_IP_VAL
+      ,A.DST_PORT_VAL
+      ,A.DST_URL_VAL 
+      ,B.CHNL_ORGT_NM
+      ,C.CHNL_BIZ_ID
+      FROM CHANNELEUM.TB_BFSM_CHNL_DST  A
+      JOIN CHANNELEUM.TB_BFSM_CHNL_ORGT B ON A.CMGRP_CD = B.CMGRP_CD AND A.CHNL_ORGT_ID = B.CHNL_ORGT_ID
+      JOIN CHANNELEUM.TB_BFSM_CHNL_BIZ  C ON A.CMGRP_CD = C.CMGRP_CD
+      WHERE C.CHNL_BIZ_ID = #{chnlBizId}
+      AND   B.ISUCO_DVCD  = #{isucoDvcd}
+      AND   A.CHNL_ORGT_ID = #{chnlOrgtId}
+	</select>
+</mapper>
