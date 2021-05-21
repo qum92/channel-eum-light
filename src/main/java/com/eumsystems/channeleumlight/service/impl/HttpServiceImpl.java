@@ -1,15 +1,8 @@
 package com.eumsystems.channeleumlight.service.impl;
 
 import java.io.IOException;
-import java.io.InputStream;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -26,7 +19,7 @@ import org.springframework.stereotype.Service;
 import com.eumsystems.channeleumlight.mapper.ChannelMapper;
 import com.eumsystems.channeleumlight.model.ChannelVo;
 import com.eumsystems.channeleumlight.service.HttpService;
-import com.google.gson.Gson;
+import com.eumsystems.channeleumlight.util.XmlLibrary;
 
 import lombok.extern.log4j.Log4j;
 
@@ -35,18 +28,24 @@ import lombok.extern.log4j.Log4j;
 public class HttpServiceImpl implements HttpService {
 	@Autowired
 	private ChannelMapper cm;
+	@Autowired
+	private XmlLibrary xmlL;
+	@Autowired
+	private HttpLogService hls;
 
-	public String getIsucoInfo(ChannelVo cv) throws IOException {
+	public String getIsucoInfo(ChannelVo cv, HttpServletRequest request) throws IOException {
 		ChannelVo chv = cm.getIsucoInfo(cv);
-		String body = makeBodyByJsonToXml(cv.getJson());
-		String xml = integrateXml(chv,body);
+		String body = xmlL.makeBodyByJsonToXml(cv.getJson());
+		String xml = xmlL.integrateXml(chv,body);
+		String orgIp = request.getRemoteAddr();
 		String dstIp = chv.getDstIpVal();
 		String dstPort = chv.getDstPortVal();
 		String dstUrl = chv.getDstUrlVal();
-		return httpURLConnection(dstIp, dstPort, dstUrl, xml);
+		hls.insertReqTransLog(orgIp, body, dstIp);
+		return httpURLConnection(orgIp, dstIp, dstPort, dstUrl, xml);
 	}
 	
-	private String httpURLConnection(String dstIp, String dstPort, String dstUrl, String xml) {
+	private String httpURLConnection(String orgIp, String dstIp, String dstPort, String dstUrl, String xml) {
 		log.info(xml);
 		try {
 			String url = String.format("http://%s:%s%s", dstIp, dstPort, dstUrl);
@@ -66,10 +65,10 @@ public class HttpServiceImpl implements HttpService {
 			
 			if(response.getStatusLine().getStatusCode() == 200) {
 				String result = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
-				String content = removeXmlHeader(result);
+				String content = xmlL.removeXmlHeader(result);
 				content = content.replaceAll("<BusinessArea>", "");
 				content = content.replaceAll("</BusinessArea>", "");
-				log.info(content);
+				hls.insertResTransLog(dstIp, content, orgIp);
 				JSONObject json = XML.toJSONObject(content);
 				String body = json.toString();
 				log.info(body);
@@ -80,87 +79,5 @@ public class HttpServiceImpl implements HttpService {
 			e.printStackTrace();
 		}
 		return null;
-	}
-	
-	private static String removeXmlHeader(String xml) {
-		String body = "";
-		Pattern p = Pattern.compile(".*?(<BusinessArea>.*?</BusinessArea>)", Pattern.DOTALL);
-		Matcher m = p.matcher(xml);
-		if (m.find()) {
-			body = m.group(1); 
-		}
-		return body;
-	}
-
-	private static void processMap(Map m, StringBuffer sb) {
-		Iterator<String> keyIt = m.keySet().iterator();
-		while (keyIt.hasNext()) {
-			String key = keyIt.next();
-			Object value = (Object)m.get(key);
-			if (value instanceof List) {
-				processList((List)value, sb, key);
-			}else if (value instanceof Map) {
-				sb.append("<").append(key).append(">\r\n");
-				processMap((Map)value, sb);
-				sb.append("</").append(key).append(">\r\n");
-			}else {
-				String element = makeElement(key, value);
-				sb.append(element);
-			}
-		}
-	}
-	
-	private static void processList(List list, StringBuffer sb, String key) {
-		for (int i=0; i<list.size(); i++) {
-			Map m = (Map)list.get(i);
-			sb.append("<").append(key).append(">\r\n");
-			processMap(m, sb);
-			sb.append("</").append(key).append(">\r\n");
-		}
-	}
-	
-	private static String makeElement(String key, Object value) {
-		StringBuffer sb = new StringBuffer();
-		sb.append("<").append(key).append(">").append(value).append("</").append(key).append(">\r\n");
-		return sb.toString();
-	}
-	
-	private String integrateXml(ChannelVo cv, String xml) throws IOException {
-		InputStream is = this.getClass().getResourceAsStream("/template/header.xml");
-		String template = IOUtils.toString(is, "UTF-8");
-		
-		template = template.replaceAll("#hdrInsId#",      cv.getChnlOrgtId());
-		template = template.replaceAll("#hdrBizCode#",    cv.getChnlBizId());
-		template = template.replaceAll("#hdrSndDate#",    getCurrentTime("YYYYMMDD"));
-		template = template.replaceAll("#hdrSndTime#",    getCurrentTime("HHMMSS"));
-		template = template.replaceAll("#hdrTxnDate#",    getCurrentTime("YYYYMMDD"));
-		
-		Pattern p = Pattern.compile(".*?(<BusinessArea>.*?</BusinessArea>)", Pattern.DOTALL);
-		Matcher m = p.matcher(xml);
-		if (m.find()) {
-			template = template.replaceAll("<BusinessArea/>", m.group(1));
-		} else {
-			template = template.replaceAll("<BusinessArea/>", "");
-		}
-		return template;
-	}
-	
-	public static String getCurrentTime(String format) {
-		Date now = new Date();
-		DateFormat df = new SimpleDateFormat(format);
-		String dateString = df.format(now);
-		return dateString;
-	}
-	
-	private static String makeBodyByJsonToXml(String json) {
-		Gson gson = new Gson();
-		Map m = gson.fromJson(json, Map.class);
-		StringBuffer sb = new StringBuffer();
-		sb.append("<BusinessArea>\r\n");
-		
-		processMap(m, sb);
-		
-		sb.append("</BusinessArea>");
-		return sb.toString();
 	}
 }

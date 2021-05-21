@@ -2,6 +2,8 @@ package com.eumsystems.channeleumlight.controller;
 
 import java.io.IOException;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -23,8 +25,9 @@ public class HttpController {
 	
 	@PostMapping("/channelEum")
 	@RequestMapping(value = "/channelEum", method = RequestMethod.POST, produces = "application/json;charset=UTF-8")
-	public @ResponseBody String getChat(@RequestBody ChannelVo cv) throws IOException {
+	public @ResponseBody String getChat(@RequestBody ChannelVo cv, HttpServletRequest request) throws IOException {
 		log.info(cv);
-		return hs.getIsucoInfo(cv);
+		log.info(request.getRemoteAddr());
+		return hs.getIsucoInfo(cv, request);
 	}
 }

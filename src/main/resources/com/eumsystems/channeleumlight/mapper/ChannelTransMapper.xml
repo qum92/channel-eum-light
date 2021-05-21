@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.eumsystems.channeleumlight.mapper.ChannelTransMapper">
+	<select id ="selectSeqNumber" resultType="com.eumsystems.channeleumlight.model.ChannelTransVo">
+		SELECT OSCAR.SEQ_TRANS_NUM.NEXTVAL AS SEQ_TRANS_NUM FROM DUAL
+	</select>
+	<insert id="insertReqTransLog" parameterType="com.eumsystems.channeleumlight.model.ChannelTransVo">
+	INSERT INTO OSCAR.BANCA_CHNL_TRANS
+		(
+			BANCA_RCV_TRLG_KEY_VAL,
+			DLNG_SNO,
+			DPTP_ORGT_ID,
+			DST_ORGT_ID,
+			CHNL_TDT,
+			CHNL_TRNS_TM,
+			CHNL_TRNS_CNTN,
+			SNRC_FLAG_CD
+		)
+		VALUES(
+			(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)||'CHANNELEUMLIGHT'||#{seqTransNum},
+			'1',
+			#{dptpOrgtId},
+			#{dstOrgtId},
+			TO_CHAR(SYSDATE, 'YYYYMMDD'),
+			TO_CHAR(SYSDATE, 'HH24MMSS'),
+			#{chnlTrnsCntn},
+			'1'
+		)
+	</insert>
+	<insert id="insertResTransLog" parameterType="com.eumsystems.channeleumlight.model.ChannelTransVo">
+	INSERT INTO OSCAR.BANCA_CHNL_TRANS
+		(
+			BANCA_RCV_TRLG_KEY_VAL,
+			DLNG_SNO,
+			DPTP_ORGT_ID,
+			DST_ORGT_ID,
+			CHNL_TDT,
+			CHNL_TRNS_TM,
+			CHNL_TRNS_CNTN,
+			SNRC_FLAG_CD
+		)
+		VALUES(
+			(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)||'CHANNELEUMLIGHT'||#{seqTransNum},
+			'2',
+			#{dptpOrgtId},
+			#{dstOrgtId},
+			TO_CHAR(SYSDATE, 'YYYYMMDD'),
+			TO_CHAR(SYSDATE, 'HH24MMSS'),
+			#{chnlTrnsCntn},
+			'2'
+		)
+	</insert>
+</mapper>
