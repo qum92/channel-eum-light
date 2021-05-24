@@ -26,7 +26,7 @@
 			#{dptpOrgtId},
 			#{dstOrgtId},
 			TO_CHAR(SYSDATE, 'YYYYMMDD'),
-			TO_CHAR(SYSDATE, 'HH24MMSS'),
+			TO_CHAR(SYSDATE, 'HH24MISS'),
 			#{chnlTrnsCntn},
 			'1'
 		)
@@ -51,7 +51,7 @@
 			#{dptpOrgtId},
 			#{dstOrgtId},
 			TO_CHAR(SYSDATE, 'YYYYMMDD'),
-			TO_CHAR(SYSDATE, 'HH24MMSS'),
+			TO_CHAR(SYSDATE, 'HH24MISS'),
 			#{chnlTrnsCntn},
 			'2'
 		)

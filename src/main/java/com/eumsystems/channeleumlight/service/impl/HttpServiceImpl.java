@@ -38,7 +38,7 @@ public class HttpServiceImpl implements HttpService {
 		ChannelVo chv = cm.getIsucoInfo(cv);
 		String body = xmlL.makeBodyByJsonToXml(cv.getJson());
 		String xml = xmlL.integrateXml(chv,body);
-		String orgIp = com.getCurrentEnvironmentNetworkIp();
+		String orgIp = com.getClientIpAddressIfServletRequestExist();
 		String dstIp = chv.getDstIpVal();
 		String dstPort = chv.getDstPortVal();
 		String dstUrl = chv.getDstUrlVal();
