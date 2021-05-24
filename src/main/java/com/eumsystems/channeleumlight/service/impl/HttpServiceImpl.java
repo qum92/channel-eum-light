@@ -2,8 +2,6 @@ package com.eumsystems.channeleumlight.service.impl;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
@@ -19,6 +17,7 @@ import org.springframework.stereotype.Service;
 import com.eumsystems.channeleumlight.mapper.ChannelMapper;
 import com.eumsystems.channeleumlight.model.ChannelVo;
 import com.eumsystems.channeleumlight.service.HttpService;
+import com.eumsystems.channeleumlight.util.Common;
 import com.eumsystems.channeleumlight.util.XmlLibrary;
 
 import lombok.extern.log4j.Log4j;
@@ -32,12 +31,14 @@ public class HttpServiceImpl implements HttpService {
 	private XmlLibrary xmlL;
 	@Autowired
 	private HttpLogService hls;
+	@Autowired
+	private Common com;
 
-	public String getIsucoInfo(ChannelVo cv, HttpServletRequest request) throws IOException {
+	public String getIsucoInfo(ChannelVo cv) throws IOException {
 		ChannelVo chv = cm.getIsucoInfo(cv);
 		String body = xmlL.makeBodyByJsonToXml(cv.getJson());
 		String xml = xmlL.integrateXml(chv,body);
-		String orgIp = request.getRemoteAddr();
+		String orgIp = com.getCurrentEnvironmentNetworkIp();
 		String dstIp = chv.getDstIpVal();
 		String dstPort = chv.getDstPortVal();
 		String dstUrl = chv.getDstUrlVal();

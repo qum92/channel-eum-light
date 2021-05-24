@@ -9,6 +9,7 @@
 	<insert id="insertReqTransLog" parameterType="com.eumsystems.channeleumlight.model.ChannelTransVo">
 	INSERT INTO OSCAR.BANCA_CHNL_TRANS
 		(
+			BANCA_CHNL_TRANS_NUM,
 			BANCA_RCV_TRLG_KEY_VAL,
 			DLNG_SNO,
 			DPTP_ORGT_ID,
@@ -19,6 +20,7 @@
 			SNRC_FLAG_CD
 		)
 		VALUES(
+			OSCAR.SEQ_BANCA_CHNL_TRANS_NUM.NEXTVAL,
 			(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)||'CHANNELEUMLIGHT'||#{seqTransNum},
 			'1',
 			#{dptpOrgtId},
@@ -32,6 +34,7 @@
 	<insert id="insertResTransLog" parameterType="com.eumsystems.channeleumlight.model.ChannelTransVo">
 	INSERT INTO OSCAR.BANCA_CHNL_TRANS
 		(
+			BANCA_CHNL_TRANS_NUM,
 			BANCA_RCV_TRLG_KEY_VAL,
 			DLNG_SNO,
 			DPTP_ORGT_ID,
@@ -42,6 +45,7 @@
 			SNRC_FLAG_CD
 		)
 		VALUES(
+			OSCAR.SEQ_BANCA_CHNL_TRANS_NUM.NEXTVAL,
 			(SELECT TO_CHAR(SYSDATE, 'YYYYMMDD') FROM DUAL)||'CHANNELEUMLIGHT'||#{seqTransNum},
 			'2',
 			#{dptpOrgtId},
