@@ -1,6 +1,8 @@
 package com.eumsystems.channeleumlight.service.impl;
 
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.client.config.RequestConfig;
@@ -34,22 +36,31 @@ public class HttpServiceImpl implements HttpService {
 	@Autowired
 	private Common com;
 
-	public String getIsucoInfo(ChannelVo cv) throws IOException {
+	public String getIsucoInfo(Map<String,Object> req) throws IOException {
+		ChannelVo cv = new ChannelVo();
+		cv.setChnlBizId((String)req.get("chnlBizId"));
+		cv.setChnlOrgtId((String)req.get("chnlOrgtId"));
+		cv.setIsucoDvcd((String)req.get("isucoDvcd"));
 		ChannelVo chv = cm.getIsucoInfo(cv);
-		String body = xmlL.makeBodyByJsonToXml(cv.getJson());
+		Map<String,String> map = new HashMap();
+		String body = xmlL.makeBodyByJsonToXml(req.get("json").toString());
 		String xml = xmlL.integrateXml(chv,body);
-		String orgIp = com.getClientIpAddressIfServletRequestExist();
-		String dstIp = chv.getDstIpVal();
-		String dstPort = chv.getDstPortVal();
-		String dstUrl = chv.getDstUrlVal();
-		hls.insertReqTransLog(orgIp, body, dstIp);
-		return httpURLConnection(orgIp, dstIp, dstPort, dstUrl, xml);
+		map.put("orgIp", com.getClientIpAddressIfServletRequestExist());
+		map.put("dstIp", chv.getDstIpVal());
+		map.put("dstPort", chv.getDstPortVal());
+		map.put("dstUrl", chv.getDstUrlVal());
+		map.put("xml", xml);
+		map.put("body", body);
+		map.put("type", "req");
+		hls.insertTransLog(map);
+		return httpURLConnection(map);
 	}
 	
-	private String httpURLConnection(String orgIp, String dstIp, String dstPort, String dstUrl, String xml) {
-		log.info(xml);
+	private String httpURLConnection(Map<String,String> map) {
+		log.info(map);
 		try {
-			String url = String.format("http://%s:%s%s", dstIp, dstPort, dstUrl);
+			String url = String.format("http://%s:%s%s", map.get("dstIp"), map.get("dstPort"), map.get("dstUrl"));
+			log.info(url);
 			HttpPost httpPost = new HttpPost(url);
 			httpPost.setHeader("SOAPAction", "");
 			httpPost.setHeader("Content-Type", "text/xml; charset=UTF-8");
@@ -59,7 +70,7 @@ public class HttpServiceImpl implements HttpService {
 					.setSocketTimeout(10 * 1000)
 					.build();
 			httpPost.setConfig(requestConfig);
-			httpPost.setEntity(new StringEntity(xml, "UTF-8"));
+			httpPost.setEntity(new StringEntity(map.get("xml"), "UTF-8"));
 			
 			CloseableHttpClient httpClient = HttpClientBuilder.create().build();
 			CloseableHttpResponse response = httpClient.execute(httpPost);			
@@ -67,9 +78,10 @@ public class HttpServiceImpl implements HttpService {
 			if(response.getStatusLine().getStatusCode() == 200) {
 				String result = IOUtils.toString(response.getEntity().getContent(), "UTF-8");
 				String content = xmlL.removeXmlHeader(result);
-				content = content.replaceAll("<BusinessArea>", "");
-				content = content.replaceAll("</BusinessArea>", "");
-				hls.insertResTransLog(dstIp, content, orgIp);
+				map.remove("body");
+				map.remove("type");
+				map.put("body", content);
+				hls.insertTransLog(map);
 				JSONObject json = XML.toJSONObject(content);
 				String body = json.toString();
 				log.info(body);

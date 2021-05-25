@@ -1,5 +1,7 @@
 package com.eumsystems.channeleumlight.service.impl;
 
+import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -22,23 +24,21 @@ public class HttpLogService {
 		seqTransNum = ctv.getSeqTransNum();
 	}
 	
-	public void insertReqTransLog(String reqIp, String body, String resIp) {
-		getSeqNum();
-		log.info(seqTransNum);
+	public void insertTransLog(Map<String,String> map) {
 		ChannelTransVo ctv = new ChannelTransVo();
-		ctv.setSeqTransNum(seqTransNum);
-		ctv.setDptpOrgtId(reqIp);
-		ctv.setDstOrgtId(resIp);
-		ctv.setChnlTrnsCntn(body);
-		ctm.insertReqTransLog(ctv);
-	}
-	
-	public void insertResTransLog(String reqIp, String body, String resIp) {
-		ChannelTransVo ctv = new ChannelTransVo();
-		ctv.setSeqTransNum(seqTransNum);
-		ctv.setDptpOrgtId(reqIp);
-		ctv.setDstOrgtId(resIp);
-		ctv.setChnlTrnsCntn(body);
-		ctm.insertResTransLog(ctv);
+		if(map.containsKey("type") && "req".equals(map.get("type"))) {
+			getSeqNum();
+			ctv.setSeqTransNum(seqTransNum);
+			ctv.setDptpOrgtId(map.get("orgIp"));
+			ctv.setDstOrgtId(map.get("dstIp"));
+			ctv.setChnlTrnsCntn(map.get("body"));
+			ctm.insertReqTransLog(ctv);
+		}else {
+			ctv.setSeqTransNum(seqTransNum);
+			ctv.setDptpOrgtId(map.get("dstIp"));
+			ctv.setDstOrgtId(map.get("orgIp"));
+			ctv.setChnlTrnsCntn(map.get("body"));
+			ctm.insertResTransLog(ctv);
+		}
 	}
 }

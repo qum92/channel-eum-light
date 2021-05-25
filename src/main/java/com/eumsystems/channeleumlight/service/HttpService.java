@@ -1,10 +1,9 @@
 package com.eumsystems.channeleumlight.service;
 
 import java.io.IOException;
-
-import com.eumsystems.channeleumlight.model.ChannelVo;
+import java.util.Map;
 
 public interface HttpService {	
-	public String getIsucoInfo(ChannelVo cv) throws IOException;
+	public String getIsucoInfo(Map<String,Object> req) throws IOException;
 
 }

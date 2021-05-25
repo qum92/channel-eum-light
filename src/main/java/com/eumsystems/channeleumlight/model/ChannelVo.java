@@ -11,5 +11,4 @@ public class ChannelVo {
 	private String chnlBizId;
 	private String isucoDvcd;
 	private String chnlOrgtId;
-	private String json;
 }

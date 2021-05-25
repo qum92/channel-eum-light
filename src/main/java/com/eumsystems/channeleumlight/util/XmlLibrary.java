@@ -15,7 +15,10 @@ import org.springframework.stereotype.Service;
 import com.eumsystems.channeleumlight.model.ChannelVo;
 import com.google.gson.Gson;
 
+import lombok.extern.log4j.Log4j;
+
 @Service
+@Log4j
 public class XmlLibrary {
 	@Autowired
 	private Common cm;
@@ -64,6 +67,7 @@ public class XmlLibrary {
 	}
 		
 	public String makeBodyByJsonToXml(String json) {
+		log.info(json);
 		Gson gson = new Gson();
 		Map m = gson.fromJson(json, Map.class);
 		StringBuffer sb = new StringBuffer();
