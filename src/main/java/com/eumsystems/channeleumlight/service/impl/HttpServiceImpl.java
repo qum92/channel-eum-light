@@ -1,7 +1,9 @@
 package com.eumsystems.channeleumlight.service.impl;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.Iterator;
 import java.util.Map;
 
 import org.apache.commons.io.IOUtils;
@@ -21,6 +23,8 @@ import com.eumsystems.channeleumlight.model.ChannelVo;
 import com.eumsystems.channeleumlight.service.HttpService;
 import com.eumsystems.channeleumlight.util.Common;
 import com.eumsystems.channeleumlight.util.XmlLibrary;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 import lombok.extern.log4j.Log4j;
 
@@ -36,6 +40,20 @@ public class HttpServiceImpl implements HttpService {
 	@Autowired
 	private Common com;
 
+	private static final String[] REMOVE_KEY_FROM_RESPNSE = {
+	        "ANNU_INF",
+	        "SYS_INF",
+	        "SAVE_INF",
+	        "OPT_INF",
+	        "SURR_INF",
+	        "BENE_INF",
+	        "PM_INF",
+	        "ANNU_NOTICE_CD",
+	        "SURRENDER_NOTICE_CD",
+	        "COVERAGE_NOTICE_CD",
+	        "POLY_NOTICE_CD"
+	};
+	
 	public String getIsucoInfo(Map<String,Object> req) throws IOException {
 		ChannelVo cv = new ChannelVo();
 		cv.setChnlBizId((String)req.get("chnlBizId"));
@@ -54,6 +72,20 @@ public class HttpServiceImpl implements HttpService {
 		map.put("type", "req");
 		hls.insertTransLog(map);
 		return httpURLConnection(map);
+	}
+	
+	private static Map<String,Object> rePackagingData(Map<String,Object> map){
+		Map<String,Object> rMap = (Map<String,Object>) map.get("BusinessArea"); 
+		Iterator<Map.Entry<String, Object>> itr = rMap.entrySet().iterator();
+		while(itr.hasNext()) {
+			Map.Entry<String, Object> curr = itr.next();
+			if(curr.getValue().toString().isEmpty()) {
+				itr.remove();
+				continue;
+			}
+			if ( Arrays.asList(REMOVE_KEY_FROM_RESPNSE).contains(curr.getKey()) ) itr.remove();
+		}
+		return map;
 	}
 	
 	private String httpURLConnection(Map<String,String> map) {
@@ -84,8 +116,10 @@ public class HttpServiceImpl implements HttpService {
 				hls.insertTransLog(map);
 				JSONObject json = XML.toJSONObject(content);
 				String body = json.toString();
-				log.info(body);
-				return body;
+				Gson gson = new GsonBuilder().setPrettyPrinting().create();
+				Map pMap = gson.fromJson(body, Map.class);
+				String res = gson.toJson(rePackagingData(pMap));
+				return res;
 			}
 			
 		} catch(Exception e) {
@@ -93,4 +127,5 @@ public class HttpServiceImpl implements HttpService {
 		}
 		return null;
 	}
+	
 }
